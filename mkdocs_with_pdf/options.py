@@ -80,6 +80,7 @@ class Options(object):
         print(config)
         if self._cover_subtitle == "genpdfversion":
             import git
+            import pytz
             r = git.Repo(".")
             head = r.head.commit
             sha = head.hexsha[:8]
@@ -89,7 +90,7 @@ class Options(object):
                 built = "github-actions"
             else:
                 built = os.getlogin()
-            self._cover_subtitle = f"version: {sha}{dirty}, built by {built}"
+            self._cover_subtitle = f"version: {sha}{dirty}, {head.committed_datetime.astimezone(pytz.timezone('Asia/Shanghai'))}, built by {built}"
             logger.info(f"Generate version: {self._cover_subtitle}")
 
         # path to custom template 'cover.html' and custom scss 'styles.scss'
