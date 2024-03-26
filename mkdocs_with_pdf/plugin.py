@@ -131,7 +131,7 @@ class WithPdfPlugin(BasePlugin):
             if (self._options.strict) else None
 
         start = timer()
-        self.generator.on_post_build(config, self.config['output_path'])
+        self.generator.on_post_build(config, self._options.output_path)
         end = timer()
         self._total_time += (end - start)
         self._logger.info(
@@ -147,7 +147,7 @@ class WithPdfPlugin(BasePlugin):
                     + ' occurred while generating PDF.')
 
     def _get_path_to_pdf_from(self, start):
-        dirname, filename = os.path.split(self.config['output_path'])
+        dirname, filename = os.path.split(self._options.output_path)
         if not dirname:
             dirname = '.'
         start_dir = os.path.split(start)[0]

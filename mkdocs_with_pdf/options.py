@@ -55,6 +55,10 @@ class Options(object):
         self.show_anchors = local_config['show_anchors']
 
         self.output_path = local_config.get('output_path', None)
+        env_output_path = os.environ.get("PDF_OUTPUT_PATH")
+        if env_output_path is not None:
+            self.output_path = env_output_path
+            logger.info(f"use PDF_OUTPUT_PATH specified in env: {self.output_path}")
 
         # Author and Copyright
         self._author = local_config['author']
