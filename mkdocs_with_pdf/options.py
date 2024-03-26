@@ -1,4 +1,5 @@
 import logging
+import os
 
 from mkdocs.config import config_options
 
@@ -37,6 +38,7 @@ class Options(object):
         ('excludes_children', config_options.Type(list, default=[])),
 
         ('exclude_pages', config_options.Type(list, default=[])),
+        ('include_pages_env', config_options.Type(str)),
         ('convert_iframe', config_options.Type(list, default=[])),
         ('two_columns_level', config_options.Type(int, default=0)),
 
@@ -87,6 +89,16 @@ class Options(object):
         self.convert_iframe = local_config['convert_iframe']
 
         self.two_columns_level = local_config['two_columns_level']
+
+        self.included_pages = ['.*']
+        if 'include_pages_env' in local_config:
+            env = os.environ.get(local_config['include_pages_env'])
+            if env is not None:
+                included_pages = os.environ.get(local_config['include_pages_env']).split(",")
+                logger.info(f'only build these pages: {included_pages}')
+                self.included_pages = included_pages
+            else:
+                logger.info(f'include_pages_env: {local_config["include_pages_env"]} is not specified in the environ, build all')
 
         # ...etc.
         self.js_renderer = None

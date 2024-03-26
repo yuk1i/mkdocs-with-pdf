@@ -44,6 +44,10 @@ class Generator(object):
             to_pattern,
             self._options.exclude_pages
         ))
+        self._include_page_patterns = list(map(
+            to_pattern,
+            self._options.included_pages
+        ))
         self._options.logger.debug(
             f'Exclude page patterns: {self._exclude_page_patterns}')
 
@@ -61,8 +65,14 @@ class Generator(object):
                 if p.match(url):
                     return True
             return False
+        
+        def is_included(url: str) -> bool:
+            for p in self._include_page_patterns:
+                if p.match(url):
+                    return True
+            return False
 
-        if is_excluded(page.url):
+        if is_excluded(page.url) or not is_included(page.url):
             self.logger.info(f'Page skipped: [{page.title}]({page.url})')
             return output_content
         else:
