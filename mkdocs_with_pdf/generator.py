@@ -4,6 +4,7 @@ import re
 from typing import Pattern
 from importlib import import_module
 from importlib.util import module_from_spec, spec_from_file_location
+from mkdocs.structure.nav import Section
 
 from bs4 import BeautifulSoup, PageElement
 from weasyprint import HTML, urls
@@ -44,10 +45,6 @@ class Generator(object):
             to_pattern,
             self._options.exclude_pages
         ))
-        self._include_page_patterns = list(map(
-            to_pattern,
-            self._options.included_pages
-        ))
         self._options.logger.debug(
             f'Exclude page patterns: {self._exclude_page_patterns}')
 
@@ -65,18 +62,12 @@ class Generator(object):
                 if p.match(url):
                     return True
             return False
-        
-        def is_included(url: str) -> bool:
-            for p in self._include_page_patterns:
-                if p.match(url):
-                    return True
-            return False
 
-        if is_excluded(page.url) or not is_included(page.url):
+        if is_excluded(page.url):
             self.logger.info(f'Page skipped: [{page.title}]({page.url})')
             return output_content
         else:
-            self.logger.debug(f' (post: [{page.title}]({page.url})')
+            self.logger.info(f' (post: [{page.title}]({page.url})')
 
         soup = self._soup_from_content(output_content, page)
 
@@ -132,7 +123,35 @@ class Generator(object):
         add_stylesheet(style_for_print(self._options))
         add_stylesheet(self._theme.get_stylesheet(self._options.debug_html))
 
+        def should_include_page(page):
+            if page.is_page:
+                for p in self._options._included_page_patterns:
+                    if p.match(page.url):
+                        self.logger.info(f"include page   : {page}")
+                        return page
+            elif page.is_section:
+                new_childrens = list()
+                for childpage in page.children:
+                    if should_include_page(childpage):
+                        self.logger.info(f"include subpage: {childpage} of {page}")
+                        new_childrens.append(childpage)
+                    else:
+                        self.logger.info(f"exclude subpage: {childpage} of {page}")
+                if len(new_childrens) == 0:
+                    self.logger.info(f"exlucde {page} due to all its children are excluded")
+                    return None
+                return Section(page.title, new_childrens)
+                # make a deep copy
+            elif page.is_link:
+                self.logger.info(f"NOT include link: {page}")
+                return None
+            return None
+
         for page in self._nav:
+            page = should_include_page(page)
+            if page is None:
+                self.logger.info(f"exclude {page}")
+                continue
             content = self._get_content(soup, page)
             if content:
                 soup.body.append(content)

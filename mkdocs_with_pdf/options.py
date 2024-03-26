@@ -1,5 +1,6 @@
 import logging
 import os
+import json
 
 from mkdocs.config import config_options
 
@@ -38,7 +39,7 @@ class Options(object):
         ('excludes_children', config_options.Type(list, default=[])),
 
         ('exclude_pages', config_options.Type(list, default=[])),
-        ('include_pages_env', config_options.Type(str)),
+        ('jobs', config_options.Type(list, default=[])),
         ('convert_iframe', config_options.Type(list, default=[])),
         ('two_columns_level', config_options.Type(int, default=0)),
 
@@ -55,10 +56,6 @@ class Options(object):
         self.show_anchors = local_config['show_anchors']
 
         self.output_path = local_config.get('output_path', None)
-        env_output_path = os.environ.get("PDF_OUTPUT_PATH")
-        if env_output_path is not None:
-            self.output_path = env_output_path
-            logger.info(f"use PDF_OUTPUT_PATH specified in env: {self.output_path}")
 
         # Author and Copyright
         self._author = local_config['author']
@@ -94,15 +91,18 @@ class Options(object):
 
         self.two_columns_level = local_config['two_columns_level']
 
-        self.included_pages = ['.*']
-        if 'include_pages_env' in local_config:
-            env = os.environ.get(local_config['include_pages_env'])
-            if env is not None:
-                included_pages = os.environ.get(local_config['include_pages_env']).split(",")
-                logger.info(f'only build these pages: {included_pages}')
-                self.included_pages = included_pages
-            else:
-                logger.info(f'include_pages_env: {local_config["include_pages_env"]} is not specified in the environ, build all')
+        # Multiple jobs
+        # Format: A json object, key is the output path, its value is an array regex for included pages
+        self.jobs = local_config["jobs"]
+        if len(self.jobs) == 0:
+            self.jobs = [{
+                "pdf": self.output_path,
+                "include": ".*"
+            }]
+        for i in range(0, len(self.jobs)):
+            if isinstance(self.jobs[i]["include"], str):
+                self.jobs[i]["include"] = [self.jobs[i]["include"]]
+        logger.info(f"jobs: {self.jobs}")
 
         # ...etc.
         self.js_renderer = None

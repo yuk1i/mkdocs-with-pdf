@@ -1,5 +1,7 @@
 import logging
 import os
+import re
+from typing import Pattern
 from timeit import default_timer as timer
 
 from mkdocs.plugins import BasePlugin
@@ -131,13 +133,24 @@ class WithPdfPlugin(BasePlugin):
             if (self._options.strict) else None
 
         start = timer()
-        self.generator.on_post_build(config, self._options.output_path)
-        end = timer()
-        self._total_time += (end - start)
-        self._logger.info(
-            f'Converting {self._num_pages} articles to PDF'
-            f' took {self._total_time:.1f}s'
-        )
+        for job in self._options.jobs:
+            def to_pattern(s: str) -> Pattern:
+                if s.startswith('^'):
+                    return re.compile(s)
+                return re.compile(f'^{s}')
+            self._options._included_page_patterns = list(map(
+                to_pattern,
+                list(job["include"]) # it may be a string
+            ))
+            self._logger.info(f"include: {job['include']}")
+            # regenerate _included_page_patterns
+            self.generator.on_post_build(config, job['pdf'])
+            end = timer()
+            self._total_time += (end - start)
+            self._logger.info(
+                f'Converting {self._num_pages} articles to PDF'
+                f' took {self._total_time:.1f}s'
+            )
 
         if self._error_counter:
             errors, warns = self._error_counter.counts()
