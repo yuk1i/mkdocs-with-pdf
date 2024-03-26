@@ -64,6 +64,15 @@ You may customize the plugin by passing options in `mkdocs.yml`:
 ```yaml
 plugins:
     - with-pdf:
+          jobs:
+        - pdf: pdf/all.pdf
+          include: .*
+        - pdf: pdf/环境搭建.pdf
+          include: 
+          - env
+          - qrh
+        - pdf: pdf/快速参考手册.pdf
+          include: qrh
         #author: WHO
         #copyright: ANY TEXT
         #
