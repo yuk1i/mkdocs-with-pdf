@@ -84,8 +84,12 @@ class Options(object):
             head = r.head.commit
             sha = head.hexsha[:8]
             modified_date = head.committed_date
-            dirty = "-dirty" if r.is_dirty(untracked_files=True) else""
-            self._cover_subtitle = f"version: {sha}{dirty}, built by {os.getlogin()}"
+            dirty = "-dirty" if r.is_dirty(untracked_files=True) else ""
+            if os.environ.get("GITHUBCI") is not None:
+                built = "github-actions"
+            else:
+                built = os.getlogin()
+            self._cover_subtitle = f"version: {sha}{dirty}, built by {built}"
             logger.info(f"Generate version: {self._cover_subtitle}")
 
         # path to custom template 'cover.html' and custom scss 'styles.scss'
