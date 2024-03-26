@@ -69,11 +69,24 @@ class Options(object):
         # Cover
         self.cover = local_config['cover']
         self.back_cover = local_config['back_cover']
+        self._cover_subtitle = ""
         if self.cover or self.back_cover:
             self._cover_title = local_config['cover_title'] \
                 if local_config['cover_title'] else config['site_name']
             self._cover_subtitle = local_config['cover_subtitle']
             self._cover_logo = local_config['cover_logo']
+        
+        # Yuki's mod:
+        print(config)
+        if self._cover_subtitle == "genpdfversion":
+            import git
+            r = git.Repo(".")
+            head = r.head.commit
+            sha = head.hexsha[:8]
+            modified_date = head.committed_date
+            dirty = "-dirty" if r.is_dirty(untracked_files=True) else""
+            self._cover_subtitle = f"version: {sha}{dirty}, built by {os.getlogin()}"
+            logger.info(f"Generate version: {self._cover_subtitle}")
 
         # path to custom template 'cover.html' and custom scss 'styles.scss'
         self.custom_template_path = local_config['custom_template_path']
