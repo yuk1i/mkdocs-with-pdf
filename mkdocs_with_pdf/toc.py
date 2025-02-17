@@ -15,6 +15,9 @@ def make_indexes(soup: PageElement, options: Options) -> None:
     # Step 1: (re)ordered headdings
     _inject_heading_order(soup, options)
 
+    if not options.toc:
+        return
+
     # Step 2: generate toc page
     level = options.toc_level
     if level < 1 or level > 3:

@@ -142,6 +142,7 @@ class WithPdfPlugin(BasePlugin):
                 to_pattern,
                 list(job["include"]) # it may be a string
             ))
+            self._options._cover_subtitle = job["subtitle"]
             self._logger.info(f"include: {job['include']}")
             # regenerate _included_page_patterns
             self.generator.on_post_build(config, job['pdf'])

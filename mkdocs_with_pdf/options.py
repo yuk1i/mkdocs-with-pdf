@@ -32,6 +32,7 @@ class Options(object):
         ('custom_template_path',
             config_options.Type(str, default="templates")),
 
+        ('toc', config_options.Type(bool, default=True)),
         ('toc_title', config_options.Type(str, default="Table of contents")),
         ('heading_shift', config_options.Type(bool, default=True)),
         ('toc_level', config_options.Type(int, default=2)),
@@ -70,15 +71,15 @@ class Options(object):
         self.cover = local_config['cover']
         self.back_cover = local_config['back_cover']
         self._cover_subtitle = ""
+        self._cover_title = local_config['cover_title'] \
+            if local_config['cover_title'] else config['site_name']
         if self.cover or self.back_cover:
-            self._cover_title = local_config['cover_title'] \
-                if local_config['cover_title'] else config['site_name']
             self._cover_subtitle = local_config['cover_subtitle']
             self._cover_logo = local_config['cover_logo']
         
         # Yuki's mod:
-        print(config)
-        if self._cover_subtitle == "genpdfversion":
+        logger.info(config)
+        if self.author == "genpdfversion":
             import git
             import pytz
             r = git.Repo(".")
@@ -90,13 +91,15 @@ class Options(object):
                 built = "github-actions"
             else:
                 built = os.getlogin()
-            self._cover_subtitle = f"version: {sha}{dirty}, {head.committed_datetime.astimezone(pytz.timezone('Asia/Shanghai'))}, built by {built}"
+            self._author = f"{sha}{dirty}"
+            self._copyright = f"Built by {built}, at {head.committed_datetime.astimezone(pytz.timezone('Asia/Shanghai'))}"
             logger.info(f"Generate version: {self._cover_subtitle}")
 
         # path to custom template 'cover.html' and custom scss 'styles.scss'
         self.custom_template_path = local_config['custom_template_path']
 
         # TOC and Chapter heading
+        self.toc = local_config['toc']
         self.toc_title = local_config['toc_title']
         self.heading_shift = local_config['heading_shift']
         self.toc_level = local_config['toc_level']
@@ -120,6 +123,8 @@ class Options(object):
         for i in range(0, len(self.jobs)):
             if isinstance(self.jobs[i]["include"], str):
                 self.jobs[i]["include"] = [self.jobs[i]["include"]]
+            if isinstance(self.jobs[i]["subtitle"], str):
+                self.jobs[i]["subtitle"] = self.jobs[i]["subtitle"]
         logger.info(f"jobs: {self.jobs}")
 
         # ...etc.
