@@ -142,8 +142,10 @@ class WithPdfPlugin(BasePlugin):
                 to_pattern,
                 list(job["include"]) # it may be a string
             ))
-            self._options._cover_subtitle = job["subtitle"]
-            self._logger.info(f"include: {job['include']}")
+            # Yuki's mod: reset _keyword to let it regenerate. at template.py:124
+            self.generator._options.template._keywords = None
+            self.generator._options._cover_subtitle = job["subtitle"]
+            self._logger.info(f"subtitle: {job['subtitle']} include: {job['include']}")
             # regenerate _included_page_patterns
             self.generator.on_post_build(config, job['pdf'])
             end = timer()

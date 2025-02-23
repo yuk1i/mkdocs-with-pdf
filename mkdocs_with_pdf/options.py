@@ -93,7 +93,7 @@ class Options(object):
                 built = os.getlogin()
             self._author = f"{sha}{dirty}"
             self._copyright = f"Built by {built}, at {head.committed_datetime.astimezone(pytz.timezone('Asia/Shanghai'))}"
-            logger.info(f"Generate version: {self._cover_subtitle}")
+            logger.info(f"Generate version: {self._author} - {self._copyright}")
 
         # path to custom template 'cover.html' and custom scss 'styles.scss'
         self.custom_template_path = local_config['custom_template_path']
